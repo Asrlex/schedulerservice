@@ -1,9 +1,19 @@
 package main
 
-import "fmt"
-import "jobs"
+import (
+    "log"
+    "net/http"
+
+    "github.com/Asrlex/schedulerservice/internal/api"
+    "github.com/Asrlex/schedulerservice/internal/metrics"
+)
 
 func main() {
-	fmt.Println("Hello World!")
-	jobs.RegisterJob("Example Job")
+	metrics.Init()
+	router := api.NewRouter()
+
+	log.Println("Starting server on :8080")
+	if err := http.ListenAndServe(":8080", router); err != nil {
+		log.Fatalf("Could not start server: %s\n", err.Error())
+	}
 }
