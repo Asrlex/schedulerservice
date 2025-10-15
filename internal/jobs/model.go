@@ -2,7 +2,14 @@ package jobs
 
 import (
 	"github.com/robfig/cron/v3"
+	"sync"
 )
+
+type JobManager struct {
+    mu    sync.Mutex
+    cron  *cron.Cron
+    jobs  map[string]cron.EntryID
+}
 
 type Job struct {
     Name     string `json:"name"`

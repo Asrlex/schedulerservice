@@ -7,24 +7,34 @@ import (
 	"sync"
 )
 
+type MetricName string
+
+const (
+	TotalJobs   MetricName = "jobs_registered_total"
+	ActiveJobs  MetricName = "jobs_active"
+	TotalExecutions MetricName = "jobs_total_executions"
+	TotalFailures   MetricName = "jobs_total_failures"
+	ExecutionDuration MetricName = "jobs_execution_duration"
+)
+
 var (
 		JobsRegisteredTotal = prometheus.NewCounter(
         prometheus.CounterOpts{
-            Name: "scheduler_jobs_registered_total",
+            Name: string(TotalJobs),
             Help: "Total number of jobs registered",
         },
     )
 
 		JobsActive = prometheus.NewGauge(
 				prometheus.GaugeOpts{
-						Name: "scheduler_jobs_active",
+						Name: string(ActiveJobs),
 						Help: "Current number of active jobs",
 				},
 		)
 
     JobExecutions = prometheus.NewCounterVec(
         prometheus.CounterOpts{
-            Name: "scheduler_job_executions_total",
+            Name: string(TotalExecutions),
             Help: "Total number of job executions",
         },
         []string{"job_name"},
@@ -32,7 +42,7 @@ var (
 
     JobFailures = prometheus.NewCounterVec(
         prometheus.CounterOpts{
-            Name: "scheduler_job_failures_total",
+            Name: string(TotalFailures),
             Help: "Total number of job execution failures",
         },
         []string{"job_name"},
@@ -40,8 +50,8 @@ var (
 
 		JobDuration = prometheus.NewHistogramVec(
 				prometheus.HistogramOpts{
-						Name:    "scheduler_job_duration_seconds",
-						Help:    "Job execution time in seconds",
+						Name: string(ExecutionDuration),
+						Help: "Job execution time in seconds",
 						Buckets: prometheus.LinearBuckets(0.1, 0.5, 10),
 				},
 				[]string{"job_name"},
