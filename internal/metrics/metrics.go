@@ -1,16 +1,26 @@
 package metrics
 
 import (
-    "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+
+	"sync"
 )
 
 var (
-		JobsRegistered = prometheus.NewCounter(
+		JobsRegisteredTotal = prometheus.NewCounter(
         prometheus.CounterOpts{
             Name: "scheduler_jobs_registered_total",
             Help: "Total number of jobs registered",
         },
     )
+
+		JobsActive = prometheus.NewGauge(
+				prometheus.GaugeOpts{
+						Name: "scheduler_jobs_active",
+						Help: "Current number of active jobs",
+				},
+		)
 
     JobExecutions = prometheus.NewCounterVec(
         prometheus.CounterOpts{
@@ -39,5 +49,16 @@ var (
 )
 
 func Init() {
-    prometheus.MustRegister(JobsRegistered, JobExecutions, JobFailures, JobDuration)
+    sync.OnceFunc(func() {
+        prometheus.MustRegister(
+            JobsRegisteredTotal,
+            JobsActive,
+            JobExecutions,
+            JobFailures,
+            JobDuration,
+            Uptime,
+            collectors.NewGoCollector(),
+            collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+        )
+    })
 }

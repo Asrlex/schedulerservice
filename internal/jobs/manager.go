@@ -1,14 +1,14 @@
 package jobs
 
 import (
-    "fmt"
-    "log"
-    "sync"
-		"time"
+	"fmt"
+	"log"
+	"sync"
+	"time"
 
-		"github.com/Asrlex/schedulerservice/internal/metrics"
+	"github.com/Asrlex/schedulerservice/internal/metrics"
 
-    "github.com/robfig/cron/v3"
+	"github.com/robfig/cron/v3"
 )
 
 type JobManager struct {
@@ -47,18 +47,40 @@ func (jm *JobManager) Register(job Job) error {
     }
 
     jm.jobs[job.Name] = id
-		metrics.JobsRegistered.Inc()
+		metrics.JobsRegisteredTotal.Inc()
+		metrics.JobsActive.Inc()
     log.Printf("[JOB] Registered %s (%s)", job.Name, job.Cron)
     return nil
 }
 
-func (jm *JobManager) List() []string {
+
+func (jm *JobManager) Unregister(name string) error {
+		jm.mu.Lock()
+		defer jm.mu.Unlock()
+
+		id, exists := jm.jobs[name]
+		if !exists {
+			return fmt.Errorf("job %q does not exist", name)
+		}
+		jm.cron.Remove(id)
+		delete(jm.jobs, name)
+		metrics.JobsActive.Dec()
+		log.Printf("[JOB] Unregistered %s", name)
+		return nil
+}
+
+
+func (jm *JobManager) List() []JobListItem {
     jm.mu.Lock()
     defer jm.mu.Unlock()
 
-    names := make([]string, 0, len(jm.jobs))
-    for name := range jm.jobs {
-        names = append(names, name)
+    jobs := make([]JobListItem, 0, len(jm.jobs))
+    for name, id := range jm.jobs {
+        jobs = append(jobs, JobListItem{
+            Name:     name,
+            Cron:     jm.cron.Entry(id).Schedule,
+            Endpoint: jm.cron.Entry(id).Job.(cron.FuncJob),
+        })
     }
-    return names
+    return jobs
 }
