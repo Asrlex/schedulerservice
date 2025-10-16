@@ -40,3 +40,8 @@ type JobListResponse struct {
 	Message string        `json:"message"`
 	Jobs    []JobListItem `json:"jobs"`
 }
+
+type JobRegistrar interface {
+    Register(Job) error
+    Unregister(string) error
+}

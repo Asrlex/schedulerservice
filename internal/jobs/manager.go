@@ -3,18 +3,37 @@ package jobs
 import (
 	"fmt"
 	"log"
-	"time"
 	"net/http"
+	"sync"
+	"time"
 
-	"github.com/Asrlex/schedulerservice/internal/db"
-	"github.com/Asrlex/schedulerservice/internal/metrics"
+	"schedulerservice/internal/db"
+	"schedulerservice/internal/metrics"
+	"schedulerservice/internal/auth"
 
 	"github.com/robfig/cron/v3"
 )
 
+var (
+    defaultManager *JobManager
+    managerOnce    sync.Once
+)
+
+// GetJobManager returns the singleton JobManager instance
+func GetJobManager() *JobManager {
+		managerOnce.Do(func() {
+				defaultManager = NewJobManager()
+				if err := defaultManager.LoadJobs(); err != nil {
+						log.Printf("[ERROR] Failed to load jobs: %v", err)
+				}
+		})
+		return defaultManager
+}
+
 // NewJobManager creates a new JobManager instance
 func NewJobManager() *JobManager {
 	db.InitDBConnection()
+	LoadMetricsFromDB()
 	c := cron.New()
 	c.Start()
 	return &JobManager{
@@ -125,7 +144,14 @@ func (jm *JobManager) Register(job Job) error {
 }
 
 func handleJobRequest(job Job) error {
-	resp, callErr := http.Get(job.Endpoint)
+	req, callErr := http.NewRequest(http.MethodGet, job.Endpoint, nil)
+	if callErr != nil {
+		return callErr
+	}
+	auth.AddAPIKeyToRequest(req)
+
+	client := &http.Client{}
+	resp, callErr := client.Do(req)
 	if callErr != nil {
 		return callErr
 	}

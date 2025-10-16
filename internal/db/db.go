@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Asrlex/schedulerservice/internal/metrics"
+	"schedulerservice/internal/metrics"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -40,13 +40,6 @@ func InitDBConnection() error {
 
 	CreateDBTables()
 	ScheduleDBPing()
-	return nil
-}
-
-func CreateDB() error {
-	if db == nil {
-		return fmt.Errorf("database connection not initialized")
-	}
 	return nil
 }
 
@@ -117,6 +110,7 @@ func CreateDBTables() error {
 	return nil
 }
 
+// UpdateGlobalMetric updates the value of a global metric in the database
 func UpdateGlobalMetric(name metrics.MetricName, value float64) error {
 	if db == nil {
 		log.Printf("[WARN] Database connection not set for metrics")
@@ -132,6 +126,7 @@ func UpdateGlobalMetric(name metrics.MetricName, value float64) error {
 	return err
 }
 
+// UpdateMetric updates the value of a metric associated with a specific job in the database
 func UpdateMetric(name metrics.MetricName, value float64, jobName string) error {
 	if db == nil {
 		log.Printf("[WARN] Database connection not set for metrics")
@@ -150,5 +145,6 @@ func UpdateMetric(name metrics.MetricName, value float64, jobName string) error 
 
 // SeedDB seeds the database with initial data
 func SeedDB() error {
+	// TODO: Implement seeding logic of static tables like global metrics
 	return nil
 }

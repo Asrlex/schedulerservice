@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Asrlex/schedulerservice/internal/jobs"
-	"github.com/Asrlex/schedulerservice/internal/auth"
+	"schedulerservice/internal/auth"
+	"schedulerservice/internal/jobs"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-var jobManager = jobs.NewJobManager()
+var jobManager = jobs.GetJobManager()
 
 func NewRouter() http.Handler {
 	mux := http.NewServeMux()
@@ -20,7 +20,7 @@ func NewRouter() http.Handler {
 	mux.HandleFunc("/jobs/list", jobListHandler)
 	mux.Handle("/metrics", promhttp.Handler())
 
-	return loggingMiddleware(auth.IsAuthorizedAPIKey(mux))
+	return loggingMiddleware(auth.ValidateAPIKey(mux))
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
