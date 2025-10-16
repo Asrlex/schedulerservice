@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  schedulerservice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: schedulerservice
+    ports:
+      - "8080:8080"
+    environment:
+      - GLOBAL_API_KEY=your_global_api_key_here
+    restart: unless-stopped
+    networks:
+      - microservices-net
+
+networks:
+  microservices-net:
+    external: true
