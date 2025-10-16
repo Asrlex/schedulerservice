@@ -6,9 +6,14 @@ import (
 
 	"github.com/Asrlex/schedulerservice/internal/api"
 	"github.com/Asrlex/schedulerservice/internal/metrics"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("No .env file found")
+	}
 	metrics.Init()
 	router := api.NewRouter()
 

@@ -59,3 +59,21 @@ A simple scheduler service written in Go.
   ```bash
   go mod tidy
   ```
+
+## Testing
+
+You can test the service using the provided commands. Make sure to set the `API_KEY` environment variable before running the tests.
+```bash
+curl -X POST localhost:8080/jobs/register \
+   -H "Content-Type: application/json" \
+   -H "X-API-KEY: your-secret-api-key" \
+   -d '{"name":"ping","cron":"*/10 * * * * *","endpoint":"http://localhost:3000/ping"}'
+
+curl -X GET localhost:8080/jobs/list \
+   -H "X-API-KEY: your-secret-api-key"
+
+curl -X POST localhost:8080/jobs/deregister \
+   -H "Content-Type: application/json" \
+   -H "X-API-KEY: your-secret-api-key" \
+   -d '{"name":"ping"}'
+```

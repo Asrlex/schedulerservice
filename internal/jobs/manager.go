@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"net/http"
 
 	"github.com/Asrlex/schedulerservice/internal/db"
 	"github.com/Asrlex/schedulerservice/internal/metrics"
@@ -88,11 +89,17 @@ func (jm *JobManager) Register(job Job) error {
 	id, dbErr := jm.cron.AddFunc(job.Cron, func() {
 		start := time.Now()
 		log.Printf("[JOB] Executing %s -> %s", job.Name, job.Endpoint)
+		if err := handleJobRequest(job); err != nil {
+			log.Printf("[ERROR] Failed to execute job %s: %v", job.Name, err)
+			metrics.JobFailures.WithLabelValues(job.Name).Inc()
+			db.UpdateMetric(metrics.TotalFailures, 1, job.Name)
+			return
+		}
 		duration := time.Since(start).Seconds()
 		metrics.JobExecutions.WithLabelValues(job.Name).Inc()
 		metrics.JobDuration.WithLabelValues(job.Name).Observe(duration)
-		db.UpdateMetric(metrics.TotalExecutions, 1)
-		db.UpdateMetric(metrics.ExecutionDuration, duration)
+		db.UpdateGlobalMetric(metrics.TotalExecutions, 1)
+		db.UpdateGlobalMetric(metrics.ExecutionDuration, duration)
 	})
 
 	if dbErr != nil {
@@ -111,9 +118,26 @@ func (jm *JobManager) Register(job Job) error {
 	jm.jobs[job.Name] = id
 	metrics.JobsRegisteredTotal.Inc()
 	metrics.JobsActive.Inc()
-	db.UpdateMetric(metrics.TotalJobs, 1)
-	db.UpdateMetric(metrics.ActiveJobs, 1)
+	db.UpdateGlobalMetric(metrics.TotalJobs, 1)
+	db.UpdateGlobalMetric(metrics.ActiveJobs, 1)
 	log.Printf("[JOB] Registered %s (%s)", job.Name, job.Cron)
+	return nil
+}
+
+func handleJobRequest(job Job) error {
+	resp, callErr := http.Get(job.Endpoint)
+	if callErr != nil {
+		return callErr
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		log.Printf("[ERROR] Job %s returned non-2xx status: %d", job.Name, resp.StatusCode)
+		metrics.JobFailures.WithLabelValues(job.Name).Inc()
+		db.UpdateMetric(metrics.TotalFailures, 1, job.Name)
+		return callErr
+	}
+
 	return nil
 }
 
@@ -131,7 +155,7 @@ func (jm *JobManager) Unregister(name string) error {
 	if dbErr != nil {
 		return fmt.Errorf("failed to delete job from database: %w", dbErr)
 	}
-	db.UpdateMetric(metrics.ActiveJobs, -1)
+	db.UpdateGlobalMetric(metrics.ActiveJobs, -1)
 
 	jm.cron.Remove(id)
 	delete(jm.jobs, name)

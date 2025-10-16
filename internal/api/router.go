@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/Asrlex/schedulerservice/internal/jobs"
+	"github.com/Asrlex/schedulerservice/internal/auth"
+
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -18,7 +20,7 @@ func NewRouter() http.Handler {
 	mux.HandleFunc("/jobs/list", jobListHandler)
 	mux.Handle("/metrics", promhttp.Handler())
 
-	return loggingMiddleware(mux)
+	return loggingMiddleware(auth.IsAuthorizedAPIKey(mux))
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {

@@ -117,7 +117,7 @@ func CreateDBTables() error {
 	return nil
 }
 
-func UpdateMetric(name metrics.MetricName, value float64) error {
+func UpdateGlobalMetric(name metrics.MetricName, value float64) error {
 	if db == nil {
 		log.Printf("[WARN] Database connection not set for metrics")
 		return fmt.Errorf("database connection not set")
@@ -129,6 +129,22 @@ func UpdateMetric(name metrics.MetricName, value float64) error {
         recorded_at = CURRENT_TIMESTAMP
         WHERE metric_name = ?
     `, value, string(name))
+	return err
+}
+
+func UpdateMetric(name metrics.MetricName, value float64, jobName string) error {
+	if db == nil {
+		log.Printf("[WARN] Database connection not set for metrics")
+		return fmt.Errorf("database connection not set")
+	}
+
+	_, err := db.Exec(`
+        INSERT INTO metrics (metric_name, metric_value, job_name, recorded_at)
+				VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+				ON CONFLICT(metric_name, job_name) DO UPDATE SET
+				metric_value = metric_value + ?,
+				recorded_at = CURRENT_TIMESTAMP
+    `, value, jobName, string(name))
 	return err
 }
 
