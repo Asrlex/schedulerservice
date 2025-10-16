@@ -205,3 +205,10 @@ func (jm *JobManager) List() []JobListItem {
 	}
 	return jobs
 }
+
+func (jm *JobManager) ShutDown() error {
+		if defaultManager != nil {
+			jm.cron.Stop()
+		}
+		return nil
+}
