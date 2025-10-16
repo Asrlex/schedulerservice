@@ -1,11 +1,11 @@
 package main
 
 import (
-    "log"
-    "net/http"
+	"log"
+	"net/http"
 
-    "github.com/Asrlex/schedulerservice/internal/api"
-    "github.com/Asrlex/schedulerservice/internal/metrics"
+	"github.com/Asrlex/schedulerservice/internal/api"
+	"github.com/Asrlex/schedulerservice/internal/metrics"
 )
 
 func main() {

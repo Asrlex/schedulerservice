@@ -1,19 +1,19 @@
 package api
 
 import (
-    "log"
-    "net/http"
-    "time"
+	"log"
+	"net/http"
+	"time"
 )
 
 func loggingMiddleware(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        start := time.Now()
-        log.Printf("Started %s %s", r.Method, r.URL.Path)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		log.Printf("Started %s %s", r.Method, r.URL.Path)
 
-        next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r)
 
-        duration := time.Since(start)
-        log.Printf("Completed %s %s in %v", r.Method, r.URL.Path, duration)
-    })
+		duration := time.Since(start)
+		log.Printf("Completed %s %s in %v", r.Method, r.URL.Path, duration)
+	})
 }

@@ -6,15 +6,15 @@ import (
 )
 
 type JobManager struct {
-    mu    sync.Mutex
-    cron  *cron.Cron
-    jobs  map[string]cron.EntryID
+	mu   sync.Mutex
+	cron *cron.Cron
+	jobs map[string]cron.EntryID
 }
 
 type Job struct {
-    Name     string `json:"name"`
-    Cron     string `json:"cron"`
-    Endpoint string `json:"endpoint"`
+	Name     string `json:"name"`
+	Cron     string `json:"cron"`
+	Endpoint string `json:"endpoint"`
 }
 
 type JobName struct {
@@ -22,21 +22,21 @@ type JobName struct {
 }
 
 type JobResponse struct {
-		Status  string `json:"status"`
-		Name    string `json:"name"`
-		Message string `json:"message"`
-		Job     Job    `json:"job"`
+	Status  string `json:"status"`
+	Name    string `json:"name"`
+	Message string `json:"message"`
+	Job     Job    `json:"job"`
 }
 
 type JobListItem struct {
-		Name     string `json:"name"`
-		Cron     cron.Schedule `json:"cron"`
-		Endpoint cron.Job `json:"endpoint"`
+	Name     string        `json:"name"`
+	Cron     cron.Schedule `json:"cron"`
+	Endpoint cron.Job      `json:"endpoint"`
 }
 
 type JobListResponse struct {
-		Status  string `json:"status"`
-		Name    string `json:"name"`
-		Message string `json:"message"`
-		Jobs    []JobListItem  `json:"jobs"`
+	Status  string        `json:"status"`
+	Name    string        `json:"name"`
+	Message string        `json:"message"`
+	Jobs    []JobListItem `json:"jobs"`
 }
