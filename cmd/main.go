@@ -46,8 +46,8 @@ func gracefulShutdown(cancel context.CancelFunc, jm *jobs.JobManager) {
 			<-sig
 			log.Println("shutdown signal received, cancelling background work")
 			cancel()
-			err := jm.ShutDown()
-			if err != nil {
+			
+			if err := jm.ShutDown(); err != nil {
 				log.Printf("Error during JobManager shutdown: %v", err)
 			}
 			if err := db.GetDB().Close(); err != nil {
