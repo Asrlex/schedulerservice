@@ -14,6 +14,7 @@ services:
       - DB_PATH=./jobs.db
       - KAFKA_BROKERS=kafka:9092
       - KAFKA_TOPIC=job-events
+      - KAFKA_DLQ_TOPIC=job-events-dlq
     restart: unless-stopped
     networks:
       - microservices-net

@@ -13,7 +13,7 @@ import (
 )
 
 // KafkaInit initializes the Kafka consumer and starts processing messages.
-func InitKafka(jr jobs.JobRegistrar) {
+func InitKafka(ctx context.Context, jr jobs.JobRegistrar) {
 	brokers := os.Getenv("KAFKA_BROKERS")
 	topic := os.Getenv("KAFKA_TOPIC")
 	groupID := os.Getenv("KAFKA_GROUP_ID")
@@ -36,16 +36,24 @@ func InitKafka(jr jobs.JobRegistrar) {
 			fmt.Println("Error reading message:", err)
 			continue
 		}
-		ProcessMessage(m, jr)
+		if err := ProcessMessage(m, jr); err != nil {
+			attempts := getAttempts(m)
+			if attempts < maxRetries {
+				setAttempts(&m, attempts+1)
+				_ = requeueMessage(ctx, m)
+			} else {
+				_ = sendToDLQ(ctx, m, err.Error())
+			}
+		}
 	}
 }
 
 // ProcessMessage processes a single Kafka message and performs the corresponding job operation.
-func ProcessMessage(msg kafka.Message, jr jobs.JobRegistrar) {
+func ProcessMessage(msg kafka.Message, jr jobs.JobRegistrar) error {
 	var km KafkaMessage
 	if err := json.Unmarshal(msg.Value, &km); err != nil {
-			log.Printf("[ERROR] invalid kafka message JSON: %v", err)
-			return
+		log.Printf("[ERROR] invalid kafka message JSON: %v", err)
+		return err
 	}
 
 	switch km.Type {
@@ -53,17 +61,18 @@ func ProcessMessage(msg kafka.Message, jr jobs.JobRegistrar) {
 			var job jobs.Job
 			if err := json.Unmarshal(km.Payload, &job); err != nil {
 				log.Printf("[ERROR] invalid job JSON: %v", err)
-				return
+				return err
 			}
 			jr.Register(job)
 		case "UNREGISTER":
 			var name jobs.JobName
 			if err := json.Unmarshal(km.Payload, &name); err != nil {
 				log.Printf("[ERROR] invalid job name JSON: %v", err)
-				return
+				return err
 			}
 			jr.Unregister(name.Name)
 		default:
 			log.Printf("[WARN] unknown kafka message type: %s", km.Type)
-	}
+		}
+	return nil
 }
