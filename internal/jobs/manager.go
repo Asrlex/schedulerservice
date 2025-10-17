@@ -143,6 +143,7 @@ func (jm *JobManager) Register(job Job) error {
 	return nil
 }
 
+// handleJobRequest makes the HTTP request for the job
 func handleJobRequest(job Job) error {
 	req, callErr := http.NewRequest(http.MethodGet, job.Endpoint, nil)
 	if callErr != nil {
