@@ -43,6 +43,14 @@ A simple scheduler service written in Go.
 
 ## Go Commands
 
+- To initialize a new module:
+  ```bash
+  go mod init github.com/Asrlex/schedulerservice
+  ```
+- To download dependencies:
+  ```bash
+  go mod download
+  ```
 - To run tests:
   ```bash
   go test ./...

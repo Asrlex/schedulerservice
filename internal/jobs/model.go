@@ -1,8 +1,9 @@
 package jobs
 
 import (
-	"github.com/robfig/cron/v3"
 	"sync"
+
+	"github.com/robfig/cron/v3"
 )
 
 type JobManager struct {
@@ -42,6 +43,6 @@ type JobListResponse struct {
 }
 
 type JobRegistrar interface {
-    Register(Job) error
-    Unregister(string) error
+	Register(Job) error
+	Deregister(string) error
 }

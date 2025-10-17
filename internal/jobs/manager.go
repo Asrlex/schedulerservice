@@ -7,27 +7,27 @@ import (
 	"sync"
 	"time"
 
+	"schedulerservice/internal/auth"
 	"schedulerservice/internal/db"
 	"schedulerservice/internal/metrics"
-	"schedulerservice/internal/auth"
 
 	"github.com/robfig/cron/v3"
 )
 
 var (
-    defaultManager *JobManager
-    managerOnce    sync.Once
+	defaultManager *JobManager
+	managerOnce    sync.Once
 )
 
 // GetJobManager returns the singleton JobManager instance
 func GetJobManager() *JobManager {
-		managerOnce.Do(func() {
-				defaultManager = NewJobManager()
-				if err := defaultManager.LoadJobs(); err != nil {
-						log.Printf("[ERROR] Failed to load jobs: %v", err)
-				}
-		})
-		return defaultManager
+	managerOnce.Do(func() {
+		defaultManager = NewJobManager()
+		if err := defaultManager.LoadJobs(); err != nil {
+			log.Printf("[ERROR] Failed to load jobs: %v", err)
+		}
+	})
+	return defaultManager
 }
 
 // NewJobManager creates a new JobManager instance
@@ -167,8 +167,8 @@ func handleJobRequest(job Job) error {
 	return nil
 }
 
-// Unregister removes a job from the manager
-func (jm *JobManager) Unregister(name string) error {
+// Deregister removes a job from the manager
+func (jm *JobManager) Deregister(name string) error {
 	jm.mu.Lock()
 	defer jm.mu.Unlock()
 
@@ -186,7 +186,7 @@ func (jm *JobManager) Unregister(name string) error {
 	jm.cron.Remove(id)
 	delete(jm.jobs, name)
 	metrics.JobsActive.Dec()
-	log.Printf("[JOB] Unregistered %s", name)
+	log.Printf("[JOB] Deregistered %s", name)
 	return nil
 }
 
@@ -207,8 +207,8 @@ func (jm *JobManager) List() []JobListItem {
 }
 
 func (jm *JobManager) ShutDown() error {
-		if defaultManager != nil {
-			jm.cron.Stop()
-		}
-		return nil
+	if defaultManager != nil {
+		jm.cron.Stop()
+	}
+	return nil
 }

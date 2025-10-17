@@ -9,7 +9,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o go-service ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o schedulerservice ./cmd/main.go
 
 # -------- Runtime Stage --------
 FROM alpine:latest

@@ -16,7 +16,7 @@ func NewRouter() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", healthHandler)
 	mux.HandleFunc("/jobs/register", jobRegisterHandler)
-	mux.HandleFunc("/jobs/unregister", jobUnregisterHandler)
+	mux.HandleFunc("/jobs/deregister", jobDeregisterHandler)
 	mux.HandleFunc("/jobs/list", jobListHandler)
 	mux.Handle("/metrics", promhttp.Handler())
 
@@ -62,7 +62,7 @@ func jobRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func jobUnregisterHandler(w http.ResponseWriter, r *http.Request) {
+func jobDeregisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -74,7 +74,7 @@ func jobUnregisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := jobManager.Unregister(req.Name); err != nil {
+	if err := jobManager.Deregister(req.Name); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -82,9 +82,9 @@ func jobUnregisterHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNoContent)
 	json.NewEncoder(w).Encode(jobs.JobResponse{
-		Status:  "unregistered",
+		Status:  "deregistered",
 		Name:    req.Name,
-		Message: "job unregistered successfully",
+		Message: "job deregistered successfully",
 	})
 }
 

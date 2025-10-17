@@ -1,11 +1,11 @@
 package kafka
 
 import (
-	"fmt"
-	"os"
 	"context"
-	"log"
 	"encoding/json"
+	"fmt"
+	"log"
+	"os"
 
 	kafka "github.com/segmentio/kafka-go"
 
@@ -57,22 +57,22 @@ func ProcessMessage(msg kafka.Message, jr jobs.JobRegistrar) error {
 	}
 
 	switch km.Type {
-		case "REGISTER":
-			var job jobs.Job
-			if err := json.Unmarshal(km.Payload, &job); err != nil {
-				log.Printf("[ERROR] invalid job JSON: %v", err)
-				return err
-			}
-			jr.Register(job)
-		case "UNREGISTER":
-			var name jobs.JobName
-			if err := json.Unmarshal(km.Payload, &name); err != nil {
-				log.Printf("[ERROR] invalid job name JSON: %v", err)
-				return err
-			}
-			jr.Unregister(name.Name)
-		default:
-			log.Printf("[WARN] unknown kafka message type: %s", km.Type)
+	case "REGISTER":
+		var job jobs.Job
+		if err := json.Unmarshal(km.Payload, &job); err != nil {
+			log.Printf("[ERROR] invalid job JSON: %v", err)
+			return err
 		}
+		jr.Register(job)
+	case "UNREGISTER":
+		var name jobs.JobName
+		if err := json.Unmarshal(km.Payload, &name); err != nil {
+			log.Printf("[ERROR] invalid job name JSON: %v", err)
+			return err
+		}
+		jr.Deregister(name.Name)
+	default:
+		log.Printf("[WARN] unknown kafka message type: %s", km.Type)
+	}
 	return nil
 }
