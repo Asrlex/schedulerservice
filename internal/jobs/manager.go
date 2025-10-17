@@ -206,6 +206,7 @@ func (jm *JobManager) List() []JobListItem {
 	return jobs
 }
 
+// ShutDown stops the cron scheduler
 func (jm *JobManager) ShutDown() error {
 	if defaultManager != nil {
 		jm.cron.Stop()

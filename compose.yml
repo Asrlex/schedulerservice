@@ -15,6 +15,7 @@ services:
       - KAFKA_BROKERS=kafka:9092
       - KAFKA_TOPIC=job-events
       - KAFKA_DLQ_TOPIC=job-events-dlq
+      - SERVICE_REGISTRY_URL=http://serviceregistry:8080
     restart: unless-stopped
     networks:
       - microservices-net
