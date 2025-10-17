@@ -14,7 +14,7 @@ var jobManager = jobs.GetJobManager()
 
 func NewRouter() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/healthz", healthHandler)
+	mux.HandleFunc("/healthcheck", healthHandler)
 	mux.HandleFunc("/jobs/register", jobRegisterHandler)
 	mux.HandleFunc("/jobs/deregister", jobDeregisterHandler)
 	mux.HandleFunc("/jobs/list", jobListHandler)
